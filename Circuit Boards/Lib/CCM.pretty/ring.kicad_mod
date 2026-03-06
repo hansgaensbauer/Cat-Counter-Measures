@@ -1,0 +1,100 @@
+(footprint "ring"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at 0 -0.5 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "96de7a00-acfa-4e02-9a99-24309d939bb6")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(property "Value" "ring"
+		(at 0 1 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "e28a03f3-656f-4f59-aaf7-776aaa1b0c5e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "0c59446e-ea5b-4355-ac51-2247edd8b137")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "6b7bc5bf-e1c3-40b2-bfa0-f8b4b529d09a")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(fp_circle
+		(center 0 0)
+		(end 18.3 0)
+		(stroke
+			(width 7.95)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Cu")
+		(uuid "fab2773e-d782-4e93-b75d-ca2ce843e352")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 18.3 0)
+		(stroke
+			(width 7.95)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Mask")
+		(uuid "f86eaa35-4e36-4ec2-99b9-957ed19899ea")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 2.5 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "47e210d0-b9b2-4996-81e4-5adf1cd876f4")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" smd rect
+		(at 21 0)
+		(size 2 2)
+		(layers "F.Cu" "F.Mask")
+		(thermal_bridge_angle 45)
+		(uuid "2743ea55-1a0d-4613-aaf5-3bc99296e285")
+	)
+	(embedded_fonts no)
+)

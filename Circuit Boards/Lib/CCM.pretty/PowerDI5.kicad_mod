@@ -1,0 +1,99 @@
+(footprint "PowerDI5"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at 0 -0.5 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "1ac0be5e-b9cd-49db-935b-5384c43279ce")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(property "Value" "PowerDI5"
+		(at 0 1 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "6fb2d5af-4d84-4197-b04d-0bb35fc16fa2")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "fd3b6220-a0b1-40e0-a311-5e54ff3e2e09")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "68f27707-4880-4baf-835e-717fafafcdaf")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_rect
+		(start -2.5 -2)
+		(end 5.25 2)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "d8f8212d-4ca1-4d8e-b2fa-f215d37969c5")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 2.5 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "5a031653-ba74-411e-b10d-a4b8ade79596")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" smd rect
+		(at 2.43 0 180)
+		(size 4.86 3.36)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "16e82596-4d2b-4984-a503-ca5547bc755c")
+	)
+	(pad "2" smd rect
+		(at -1.552 -0.92 180)
+		(size 1.4 1.39)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "096994f9-6271-4661-a62e-a54552e1404f")
+	)
+	(pad "3" smd rect
+		(at -1.552 0.92 180)
+		(size 1.4 1.39)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "f44eeed5-0093-4ccc-b815-a954e4d0e99e")
+	)
+	(embedded_fonts no)
+)
