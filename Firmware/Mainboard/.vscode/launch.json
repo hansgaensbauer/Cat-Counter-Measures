@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug (Atmel ICE)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "configFiles": [
+                "${workspaceFolder}/openocd.cfg"
+            ],
+            "executable": "${workspaceFolder}/build/firmware.elf",
+            "svdFile": "/home/hans/Documents/xdk-asf-3.52.0/sam0/utils/cmsis/samd21/include/samd21e17d.svd",
+            "runToEntryPoint": "main",
+            "gdbPath": "arm-none-eabi-gdb",
+            "showDevDebugOutput": "none"
+        },
+        {
+            "name": "Attach GDB",
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "configFiles": [
+                "${workspaceFolder}/openocd.cfg"
+            ],
+            "executable": "${workspaceFolder}/build/firmware.elf",
+            "svdFile": "/home/hans/Documents/xdk-asf-3.52.0/sam0/utils/cmsis/samd21/include/samd21e17d.svd",
+            "gdbPath": "arm-none-eabi-gdb"
+        }
+    ]
+}

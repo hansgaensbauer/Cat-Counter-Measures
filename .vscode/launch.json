@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Mainboard",
+            "cwd": "${workspaceFolder}",
+            "configFiles": [
+                "${workspaceFolder}/Firmware/openocd.cfg"
+            ],
+            "executable": "./Firmware/Mainboard/build/firmware.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "gdbPath": "arm-none-eabi-gdb",
+            "servertype": "openocd"
+        },
+        {
+            "name": "Debug Base",
+            "cwd": "${workspaceFolder}",
+            "configFiles": [
+                "${workspaceFolder}/Firmware/openocd.cfg"
+            ],
+            "executable": "./Firmware/Base/build/firmware.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "gdbPath": "arm-none-eabi-gdb",
+            "servertype": "openocd"
+        }
+    ]
+}
