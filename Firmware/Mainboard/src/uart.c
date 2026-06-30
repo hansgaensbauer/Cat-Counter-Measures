@@ -42,7 +42,7 @@ void uart_init(){
 
     //Enable the UART
     SERCOM0->USART.CTRLA.reg |= SERCOM_USART_CTRLA_ENABLE;
-    while(SERCOM0->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_ENABLE);
+    while(SERCOM0->USART.SYNCBUSY.bit.ENABLE);
 }
 
 void uart_putc(char c){

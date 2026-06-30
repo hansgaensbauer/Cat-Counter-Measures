@@ -3,6 +3,7 @@
  */
 #include <samd21.h>
 #include "uart.h"
+#include "mlx90640.h"
 #include "main.h"
 #include <stdio.h>
 #include <string.h> 
@@ -12,7 +13,12 @@ int main(void)
 {
     clock_init();
     uart_init();
-    debug_printf("hello world!");
+    mlx90640_init();
+    debug_printf("hello world!\n\r\n\r");
+    uint16_t rdata = 0;
+    i2c_read_reg(IR_I2C_ADDR, 0x800D, &rdata);
+
+    debug_printf("rdata: %x", rdata);
 
     while (1) {
     }
@@ -81,10 +87,15 @@ void clock_init(){
 
     while (GCLK->STATUS.bit.SYNCBUSY);
 
-    //Connect SERCOM0 (debug UART) ot GCLK
+    //Connect SERCOM0 (debug UART) to GCLK0
     GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_SERCOM0_CORE
                       | GCLK_CLKCTRL_GEN_GCLK0
                       | GCLK_CLKCTRL_CLKEN;
     while (GCLK->STATUS.bit.SYNCBUSY);
 
+    //Connect SERCOM2 to GCLK0
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_SERCOM2_CORE
+                      | GCLK_CLKCTRL_GEN_GCLK0
+                      | GCLK_CLKCTRL_CLKEN;
+    while (GCLK->STATUS.bit.SYNCBUSY);
 }
