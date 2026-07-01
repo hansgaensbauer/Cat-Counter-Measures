@@ -9,6 +9,8 @@
 #include <string.h> 
 #include <stdarg.h>
 
+uint16_t img_buff[24*32];
+
 int main(void)
 {
     clock_init();
@@ -18,9 +20,21 @@ int main(void)
     uint16_t rdata = 0;
     i2c_read_reg(IR_I2C_ADDR, 0x800D, &rdata);
 
-    debug_printf("rdata: %x", rdata);
+    debug_printf("rdata: %d", rdata);
 
     while (1) {
+        mlx90640_read_image(img_buff);
+        print_image(img_buff);
+    }
+}
+
+void print_image(uint16_t* img){
+    debug_printf("\n\r");
+    for(int i = 0; i < 24; i ++){
+        for(int j = 0; j < 32; j ++){
+            debug_printf("%d,", *(img + 32*i + j));
+        }
+        debug_printf("\n\r");
     }
 }
 

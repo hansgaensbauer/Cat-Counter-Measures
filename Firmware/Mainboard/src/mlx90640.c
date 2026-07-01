@@ -12,6 +12,37 @@ void mlx90640_init(){
 
 }
 
+uint8_t mlx90640_read_image(uint16_t* image_buff){
+    //Read frame 1 (chess pattern)
+    for(int i = 0; i < 24; i ++){
+        for(int j = 0; j < 16; j ++){
+            i2c_read_reg(IR_I2C_ADDR, 
+                IR_IMG_RAM_START + 32*i+j*2, 
+                (image_buff + 32*i+j*2));
+        }
+    }
+    //Clear bit "new data in RAM"
+    uint16_t status_reg;
+    i2c_read_reg(IR_I2C_ADDR, IR_STATUS_REG, &status_reg);
+    i2c_write_reg(IR_I2C_ADDR, IR_STATUS_REG, status_reg & ~IR_NEW_DATA_BIT);
+
+    //Poll "new data in RAM"
+    while(!(status_reg & IR_NEW_DATA_BIT)){
+        i2c_read_reg(IR_I2C_ADDR, IR_STATUS_REG, &status_reg);
+    }
+
+    //Read frame 2 (chess pattern)
+    for(int i = 0; i < 24; i ++){
+        for(int j = 0; j < 16; j ++){
+            i2c_read_reg(IR_I2C_ADDR, 
+                IR_IMG_RAM_START + 32*i+j*2 + 1, 
+                (image_buff + 32*i+j*2 + 1));
+        }
+    }
+
+    return 0;
+}
+
 void i2c_init(){
     //Initialize SERCOM2 for I2C
     PM->APBCMASK.reg |= PM_APBCMASK_SERCOM2;
@@ -35,7 +66,7 @@ void i2c_init(){
     // while(SERCOM2->I2CM.SYNCBUSY.bit.SYSOP);
 
     //BAUD: 48000000/(10+2*250) is about 94117
-    SERCOM2->I2CM.BAUD.reg = SERCOM_I2CM_BAUD_BAUD(250);
+    SERCOM2->I2CM.BAUD.reg = SERCOM_I2CM_BAUD_BAUD(40);
     while(SERCOM2->I2CM.SYNCBUSY.bit.SYSOP);
 
     //Enable
@@ -47,7 +78,7 @@ void i2c_init(){
 
 }
 
-uint16_t i2c_read_reg(uint8_t addr, uint16_t reg_addr, uint16_t* dataptr){
+uint16_t i2c_read_addr(uint8_t addr, uint16_t reg_addr, uint16_t* dataptr, uint16_t len){
     uint16_t data = 0x00;
     //write address packet, 0 for write
     SERCOM2->I2CM.ADDR.reg = (addr << 1) | 0;
@@ -83,22 +114,25 @@ uint16_t i2c_read_reg(uint8_t addr, uint16_t reg_addr, uint16_t* dataptr){
         return 1;
     }
 
-    //ACK...
-    SERCOM2->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_ACKACT;
-    while(SERCOM2->I2CM.SYNCBUSY.bit.SYSOP);
+    for(int n = 0; n < len * 2 - 1; n++){
+        //ACK...
+        SERCOM2->I2CM.CTRLB.reg &= ~SERCOM_I2CM_CTRLB_ACKACT;
+        while(SERCOM2->I2CM.SYNCBUSY.bit.SYSOP);
 
-    //...then one more
-    SERCOM2->I2CM.CTRLB.bit.CMD = 0x2;
-    while(SERCOM2->I2CM.SYNCBUSY.bit.SYSOP);
+        //...then one more
+        SERCOM2->I2CM.CTRLB.bit.CMD = 0x2;
+        while(SERCOM2->I2CM.SYNCBUSY.bit.SYSOP);
 
-    data = SERCOM2->I2CM.DATA.reg;
-    while(SERCOM2->I2CM.SYNCBUSY.bit.SYSOP);
+        *(((uint8_t*) dataptr) + n) = SERCOM2->I2CM.DATA.reg;
+        while(SERCOM2->I2CM.SYNCBUSY.bit.SYSOP);
 
-    //Wait for SB
-    while(!SERCOM2->I2CM.INTFLAG.bit.SB);
-    if(SERCOM2->I2CM.STATUS.bit.RXNACK || SERCOM2->I2CM.STATUS.bit.BUSERR){
-        return 1;
+        //Wait for SB
+        while(!SERCOM2->I2CM.INTFLAG.bit.SB);
+        if(SERCOM2->I2CM.STATUS.bit.RXNACK || SERCOM2->I2CM.STATUS.bit.BUSERR){
+            return 1;
+        }
     }
+    //last byte
 
     //NACK...
     SERCOM2->I2CM.CTRLB.reg |= SERCOM_I2CM_CTRLB_ACKACT;
@@ -109,7 +143,7 @@ uint16_t i2c_read_reg(uint8_t addr, uint16_t reg_addr, uint16_t* dataptr){
     while(SERCOM2->I2CM.SYNCBUSY.bit.SYSOP);
 
     //Read in data
-    data |= SERCOM2->I2CM.DATA.reg << 8;
+    *(((uint8_t*) dataptr) + 2*len - 1) = SERCOM2->I2CM.DATA.reg;
 
     *dataptr = data;
     return 0;
