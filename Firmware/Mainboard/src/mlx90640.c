@@ -12,33 +12,23 @@ void mlx90640_init(){
 
 }
 
-uint8_t mlx90640_read_image(uint16_t* image_buff){
-    //Read frame 1 (chess pattern)
-    for(int i = 0; i < 24; i ++){
-        for(int j = 0; j < 16; j ++){
-            i2c_read_reg(IR_I2C_ADDR, 
-                IR_IMG_RAM_START + 32*i+j*2, 
-                (image_buff + 32*i+j*2));
-        }
-    }
-    //Clear bit "new data in RAM"
-    uint16_t status_reg;
-    i2c_read_reg(IR_I2C_ADDR, IR_STATUS_REG, &status_reg);
-    i2c_write_reg(IR_I2C_ADDR, IR_STATUS_REG, status_reg & ~IR_NEW_DATA_BIT);
+uint8_t mlx90640_read_image(int16_t* image_buff){
 
     //Poll "new data in RAM"
+    uint16_t status_reg = 0;
     while(!(status_reg & IR_NEW_DATA_BIT)){
-        i2c_read_reg(IR_I2C_ADDR, IR_STATUS_REG, &status_reg);
+        i2c_read_addr(IR_I2C_ADDR, IR_STATUS_REG, &status_reg, 1);
     }
 
-    //Read frame 2 (chess pattern)
-    for(int i = 0; i < 24; i ++){
-        for(int j = 0; j < 16; j ++){
-            i2c_read_reg(IR_I2C_ADDR, 
-                IR_IMG_RAM_START + 32*i+j*2 + 1, 
-                (image_buff + 32*i+j*2 + 1));
-        }
-    }
+    //Possibly - magic undocumented init status value (0x30) to STATUS_REG???
+    i2c_write_reg(IR_I2C_ADDR, IR_STATUS_REG, 0x30);
+
+    //Read frame 1 (chess pattern)
+    i2c_read_addr(IR_I2C_ADDR, IR_IMG_RAM_START, (uint16_t*) image_buff, IR_NUM_PIXELS);
+
+    //Clear bit "new data in RAM"
+    i2c_read_addr(IR_I2C_ADDR, IR_STATUS_REG, &status_reg, 1);
+    i2c_write_reg(IR_I2C_ADDR, IR_STATUS_REG, status_reg & ~IR_NEW_DATA_BIT);
 
     return 0;
 }
@@ -79,7 +69,6 @@ void i2c_init(){
 }
 
 uint16_t i2c_read_addr(uint8_t addr, uint16_t reg_addr, uint16_t* dataptr, uint16_t len){
-    uint16_t data = 0x00;
     //write address packet, 0 for write
     SERCOM2->I2CM.ADDR.reg = (addr << 1) | 0;
 
@@ -123,7 +112,13 @@ uint16_t i2c_read_addr(uint8_t addr, uint16_t reg_addr, uint16_t* dataptr, uint1
         SERCOM2->I2CM.CTRLB.bit.CMD = 0x2;
         while(SERCOM2->I2CM.SYNCBUSY.bit.SYSOP);
 
-        *(((uint8_t*) dataptr) + n) = SERCOM2->I2CM.DATA.reg;
+        //Swap endian-ness
+        if(n % 2){
+            *(((uint8_t*) dataptr) + n - 1) = SERCOM2->I2CM.DATA.reg;
+        }else{
+            *(((uint8_t*) dataptr) + n + 1) = SERCOM2->I2CM.DATA.reg;
+        }
+            
         while(SERCOM2->I2CM.SYNCBUSY.bit.SYSOP);
 
         //Wait for SB
@@ -143,9 +138,8 @@ uint16_t i2c_read_addr(uint8_t addr, uint16_t reg_addr, uint16_t* dataptr, uint1
     while(SERCOM2->I2CM.SYNCBUSY.bit.SYSOP);
 
     //Read in data
-    *(((uint8_t*) dataptr) + 2*len - 1) = SERCOM2->I2CM.DATA.reg;
+    *(((uint8_t*) dataptr) + 2*len - 2) = SERCOM2->I2CM.DATA.reg;
 
-    *dataptr = data;
     return 0;
 
 }

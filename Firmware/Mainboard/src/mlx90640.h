@@ -4,7 +4,7 @@
 #define IR_I2C_ADDR 0x33
 #define CAMERA_EN_PIN PORT_PA28
 
-#define IR_NUM
+#define IR_NUM_PIXELS 768
 
 #define IR_STATUS_REG 0x8000
 #define IR_CTRL_REG_1 0x800D
@@ -20,6 +20,6 @@ void i2c_init();
 
 uint16_t i2c_read_addr(uint8_t addr, uint16_t reg_addr, uint16_t* dataptr, uint16_t len);
 uint8_t i2c_write_reg(uint8_t addr, uint16_t reg_addr, uint16_t data);
-uint8_t mlx90640_read_image(uint16_t* image_buff);
+uint8_t mlx90640_read_image(int16_t* image_buff);
 
 #endif

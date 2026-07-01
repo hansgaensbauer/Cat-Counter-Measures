@@ -17,10 +17,6 @@ int main(void)
     uart_init();
     mlx90640_init();
     debug_printf("hello world!\n\r\n\r");
-    uint16_t rdata = 0;
-    i2c_read_reg(IR_I2C_ADDR, 0x800D, &rdata);
-
-    debug_printf("rdata: %d", rdata);
 
     while (1) {
         mlx90640_read_image(img_buff);
@@ -28,7 +24,7 @@ int main(void)
     }
 }
 
-void print_image(uint16_t* img){
+void print_image(int16_t* img){
     debug_printf("\n\r");
     for(int i = 0; i < 24; i ++){
         for(int j = 0; j < 32; j ++){

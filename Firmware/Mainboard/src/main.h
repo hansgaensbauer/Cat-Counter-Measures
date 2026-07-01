@@ -6,6 +6,6 @@
 #include <stdbool.h>
 
 void clock_init(void);
-void print_image(uint16_t* img);
+void print_image(int16_t* img);
 
 #endif /* MAIN_H */
