@@ -240,7 +240,7 @@
       "internal_id": "",
       "mfg": "",
       "mpn": "",
-      "sch_revision": ""
+      "sch_revision": "1"
     },
     "layer_pairs": [],
     "layer_presets": [],
@@ -706,7 +706,7 @@
       {
         "filename": "mainboard.kicad_sch",
         "name": "mainboard",
-        "uuid": "00000000-0000-0000-0000-000000000000"
+        "uuid": "50981419-9e91-4780-81c9-cb20a38a021e"
       }
     ],
     "used_designators": "",
@@ -715,7 +715,7 @@
   "sheets": [
     [
       "50981419-9e91-4780-81c9-cb20a38a021e",
-      "Root"
+      "mainboard"
     ]
   ],
   "text_variables": {},

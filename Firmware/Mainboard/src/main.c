@@ -5,22 +5,51 @@
 #include "uart.h"
 #include "mlx90640.h"
 #include "main.h"
+#include "boost.h"
 #include <stdio.h>
 #include <string.h> 
 #include <stdarg.h>
 
 uint16_t img_buff[24*32];
 
+//State variables and flags
+volatile char charge_done = 0;
+
 int main(void)
 {
     clock_init();
+    __enable_irq();
     uart_init();
-    mlx90640_init();
-    debug_printf("hello world!\n\r\n\r");
+
+    boost_init();
+    uint16_t adc = read_boost_voltage();
+    debug_printf("BV: %d\n\r", adc);
+    // boost_start_charge();
+    // while(!charge_done);
+    // debug_printf("Charge done.\n\r");
+    // for(int i = 0; i < 100; i++){
+    //     debug_printf("hello world!");
+    // }
+    // boost_stop_charge();
+
+    // mlx90640_init();
+    // debug_printf("hello world!\n\r\n\r");
+    // uint16_t adc = read_boost_voltage();
+    // debug_printf('ADC Reading:  %d', adc);
+
+    
 
     while (1) {
-        mlx90640_read_image(img_buff);
-        print_image(img_buff);
+        // boost_start_charge();
+        for(int i = 0; i < 1000; i++){
+            uint16_t cnt = 0;
+            for(int j = 0; j < 20000; j++){
+                cnt = cnt + i + j;
+            }
+        }
+        // boost_stop_charge();
+        uint16_t adc = read_boost_voltage();
+        debug_printf("BV: %d\n\r", adc);
     }
 }
 
@@ -108,4 +137,51 @@ void clock_init(){
                       | GCLK_CLKCTRL_GEN_GCLK0
                       | GCLK_CLKCTRL_CLKEN;
     while (GCLK->STATUS.bit.SYNCBUSY);
+
+    //Clock for DAC, ADC, AC
+    //AC clk - 48MHz
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_AC_DIG
+                      | GCLK_CLKCTRL_GEN_GCLK0
+                      | GCLK_CLKCTRL_CLKEN;
+    while (GCLK->STATUS.bit.SYNCBUSY);
+
+    // Feed GCLK1 to the AC ANA (32.786kHz)
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_AC_ANA |
+                        GCLK_CLKCTRL_GEN_GCLK1 |
+                        GCLK_CLKCTRL_CLKEN;
+    while (GCLK->STATUS.bit.SYNCBUSY);
+
+    // Configure GCLK4 divisor
+    GCLK->GENDIV.reg = GCLK_GENDIV_ID(4) | GCLK_GENDIV_DIV(3);
+
+    // Enable GCLK4, source = DFLL48M
+    GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(4) |
+                        GCLK_GENCTRL_GENEN |
+                        GCLK_GENCTRL_SRC_DFLL48M |
+                        GCLK_GENCTRL_DIVSEL;
+
+    while (GCLK->STATUS.bit.SYNCBUSY);
+
+    // Feed GCLK4 to the DAC
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_DAC |
+                        GCLK_CLKCTRL_GEN_GCLK4 |
+                        GCLK_CLKCTRL_CLKEN;
+    while (GCLK->STATUS.bit.SYNCBUSY);
+
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_ADC
+                      | GCLK_CLKCTRL_GEN_GCLK0
+                      | GCLK_CLKCTRL_CLKEN;
+    while (GCLK->STATUS.bit.SYNCBUSY);
+
+    // Clock for boost switch
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_TCC0_TCC1
+                      | GCLK_CLKCTRL_GEN_GCLK0
+                      | GCLK_CLKCTRL_CLKEN;
+    while (GCLK->STATUS.bit.SYNCBUSY);
+}
+
+void HardFault_Handler(){
+    //Turn off boost converter switch!
+    PORT->Group[0].PINCFG[7].reg = 0;
+    PORT->Group[0].OUTCLR.reg = PORT_PA07;
 }

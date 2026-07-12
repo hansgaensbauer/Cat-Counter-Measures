@@ -33,6 +33,23 @@ uint8_t mlx90640_read_image(int16_t* image_buff){
     return 0;
 }
 
+
+// uint16_t mlx90640_get_ta(){
+//     //Proportional to Absolute Temperature register
+//     uint16_t ptat = 0;
+//     i2c_read_addr(IR_I2C_ADDR, IR_PTAT_REG, &ptat, 1);
+    
+//     uint16_t ptatart = 0;
+//     i2c_read_addr(IR_I2C_ADDR, IR_PTATART, &ptatart, 1);
+// }
+
+//Proportional to Absolute Temperature register
+// uint16_t mlx90640_get_ta(){
+//     uint16_t ptat = 0;
+//     i2c_read_addr(IR_I2C_ADDR, IR_STATUS_REG, &ptat, 1);
+//     return ptat;
+// }
+
 void i2c_init(){
     //Initialize SERCOM2 for I2C
     PM->APBCMASK.reg |= PM_APBCMASK_SERCOM2;

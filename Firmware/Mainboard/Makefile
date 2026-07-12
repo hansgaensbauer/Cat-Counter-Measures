@@ -27,6 +27,7 @@ SRC_C := \
   src/main.c \
   src/uart.c \
   src/mlx90640.c \
+  src/boost.c \
   $(ASF_ROOT)/sam0/drivers/system/system.c \
   $(ASF_ROOT)/sam0/drivers/system/interrupt/system_interrupt.c \
   $(ASF_ROOT)/sam0/utils/cmsis/samd21/source/gcc/startup_samd21.c \
