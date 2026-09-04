@@ -31,7 +31,8 @@ SRC_C := \
   $(ASF_ROOT)/sam0/drivers/system/system.c \
   $(ASF_ROOT)/sam0/drivers/system/interrupt/system_interrupt.c \
   $(ASF_ROOT)/sam0/utils/cmsis/samd21/source/gcc/startup_samd21.c \
-  $(ASF_ROOT)/sam0/utils/syscalls/gcc/syscalls.c
+  $(ASF_ROOT)/sam0/utils/syscalls/gcc/syscalls.c \
+  mlx90640-library/functions/MLX90640_API.c \
 
 ##############################################################################
 # Include paths
@@ -52,7 +53,8 @@ INC := \
   $(ASF_ROOT)/sam0/drivers/system/interrupt \
   $(ASF_ROOT)/sam0/drivers/system/interrupt/system_interrupt_samd21 \
   $(ASF_ROOT)/thirdparty/CMSIS/Include \
-  $(ASF_ROOT)/common/utils
+  $(ASF_ROOT)/common/utils \
+  mlx90640-library/headers \
 
 ##############################################################################
 # Defines
@@ -78,6 +80,8 @@ LDFLAGS := $(MCU_FLAGS) \
   -Wl,-Map=$(BUILD_DIR)/output.map \
   --specs=nosys.specs
 
+LDFLAGS += --specs=nano.specs
+
 ##############################################################################
 # Build rules
 ##############################################################################
@@ -87,7 +91,7 @@ all: $(BUILD_DIR)/firmware.elf $(BUILD_DIR)/firmware.bin
 	$(SIZE) $(BUILD_DIR)/firmware.elf
 
 $(BUILD_DIR)/firmware.elf: $(OBJS)
-	$(CC) $(LDFLAGS) $^ -o $@
+	$(CC) $(LDFLAGS) $^ -o $@ -lm
 
 $(BUILD_DIR)/firmware.bin: $(BUILD_DIR)/firmware.elf
 	$(OBJCOPY) -O binary $< $@
@@ -95,6 +99,9 @@ $(BUILD_DIR)/firmware.bin: $(BUILD_DIR)/firmware.elf
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+# Debug this one file without de-optimizing the whole build
+$(BUILD_DIR)/MLX90640_API.o: CFLAGS += -O0 -fno-omit-frame-pointer -g3
 
 clean:
 	rm -rf $(BUILD_DIR)

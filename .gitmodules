@@ -1,3 +1,6 @@
 [submodule "Firmware/Base/tinyusb"]
 	path = Firmware/Base/tinyusb
 	url = https://github.com/hathach/tinyusb.git
+[submodule "Firmware/Mainboard/mlx90640-library"]
+	path = Firmware/Mainboard/mlx90640-library
+	url = https://github.com/melexis/mlx90640-library.git

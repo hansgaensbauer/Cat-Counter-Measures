@@ -4,26 +4,32 @@
 #include <samd21.h>
 #include "uart.h"
 #include "mlx90640.h"
+#include "MLX90640_API.h"
 #include "main.h"
 #include "boost.h"
 #include <stdio.h>
 #include <string.h> 
 #include <stdarg.h>
+#include <math.h>
 
-uint16_t img_buff[24*32];
+
+static float mlx90640Image[768];
 
 //State variables and flags
 volatile char charge_done = 0;
 
 int main(void)
 {
-    clock_init();
-    __enable_irq();
-    uart_init();
+    initialize();
 
-    boost_init();
-    uint16_t adc = read_boost_voltage();
-    debug_printf("BV: %d\n\r", adc);
+    MLX90640_SetChessMode(IR_I2C_ADDR);
+    MLX90640_SetResolution(IR_I2C_ADDR, IR_RES_18_BIT);
+    MLX90640_SetRefreshRate(IR_I2C_ADDR, IR_REFRESH_RATE_2Hz);
+    MLX90640_SynchFrame(IR_I2C_ADDR);
+
+    // boost_init();
+    // uint16_t adc = read_boost_voltage();
+    // debug_printf("BV: %d\n\r", adc);
     // boost_start_charge();
     // while(!charge_done);
     // debug_printf("Charge done.\n\r");
@@ -32,7 +38,7 @@ int main(void)
     // }
     // boost_stop_charge();
 
-    // mlx90640_init();
+    
     // debug_printf("hello world!\n\r\n\r");
     // uint16_t adc = read_boost_voltage();
     // debug_printf('ADC Reading:  %d', adc);
@@ -41,15 +47,26 @@ int main(void)
 
     while (1) {
         // boost_start_charge();
-        for(int i = 0; i < 1000; i++){
-            uint16_t cnt = 0;
-            for(int j = 0; j < 20000; j++){
-                cnt = cnt + i + j;
-            }
+
+        PORT->Group[0].OUTTGL.reg = PORT_PA18;
+        // uint16_t adc = read_boost_voltage();
+        // debug_printf("BV: %d\n\r", adc);
+
+        // for(volatile int i = 0; i < 100; i++){
+        //     uint16_t cnt = 0;
+        //     for(volatile int j = 0; j < 20000; j++){
+        //         cnt = cnt + i + j;
+        //     }
+        // }
+
+        mlx90640_read_image(mlx90640Image);
+        float testfloat = 22.3;
+        for(int i = 0; i < 20; i++){
+            debug_printf("%d,", (int)(mlx90640Image[i]*100));
         }
-        // boost_stop_charge();
-        uint16_t adc = read_boost_voltage();
-        debug_printf("BV: %d\n\r", adc);
+        // if(center_pixel > -10){
+        //     // fire();
+        // }
     }
 }
 
@@ -63,55 +80,74 @@ void print_image(int16_t* img){
     }
 }
 
+void initialize(){
+    clock_init();
+    __enable_irq();
+    uart_init();
+    PORT->Group[0].OUTCLR.reg = PORT_PA16;
+    PORT->Group[0].DIRSET.reg = PORT_PA16;
+    PORT->Group[0].DIRSET.reg = PORT_PA18;
+    if(mlx90640_init()){
+        debug_printf("Camera initialization failed");
+    }
+}
+
+void fire(){
+    PORT->Group[0].OUTSET.reg = PORT_PA16;
+    for(volatile int i = 0; i < 100; i++){
+        uint16_t cnt = 0;
+        for(volatile int j = 0; j < 20000; j++){
+            cnt = cnt + i + j;
+        }
+    }
+    PORT->Group[0].OUTCLR.reg = PORT_PA16;
+}
+
 void clock_init(){
 
     NVMCTRL->CTRLB.bit.RWS = 1;
     
-    //Enable XOSC32K
-    SYSCTRL->XOSC32K.reg = SYSCTRL_XOSC32K_STARTUP(0x6)
-                         | SYSCTRL_XOSC32K_XTALEN
-                         | SYSCTRL_XOSC32K_EN32K
-                         | SYSCTRL_XOSC32K_ENABLE;
-    while (!SYSCTRL->PCLKSR.bit.XOSC32KRDY);
+    //Enable OSC32K
+    SYSCTRL->OSC32K.reg = SYSCTRL_OSC32K_STARTUP(0x6)
+                         | SYSCTRL_OSC32K_EN32K;
+
+    SYSCTRL->OSC32K.bit.ENABLE = 1;
+    while (!SYSCTRL->PCLKSR.bit.OSC32KRDY);
 
     // GCLK1 is div 1
     GCLK->GENDIV.reg  = GCLK_GENDIV_ID(1) | GCLK_GENDIV_DIV(1);
 
     // Enable GCLK1
     GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(1)
-                    | GCLK_GENCTRL_SRC_XOSC32K
+                    | GCLK_GENCTRL_SRC_OSCULP32K
+                    | GCLK_GENCTRL_IDC
                     | GCLK_GENCTRL_GENEN;
     while (GCLK->STATUS.bit.SYNCBUSY);
 
     //Enable MUX 0 (DFLL) with clock sourced from GCLK1
-    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(0)
+    GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID_DFLL48
                       | GCLK_CLKCTRL_GEN_GCLK1
                       | GCLK_CLKCTRL_CLKEN;
     while (GCLK->STATUS.bit.SYNCBUSY);
 
     //Enable DFLL to get 48MHz
-    SYSCTRL->DFLLCTRL.reg;
     while (!SYSCTRL->PCLKSR.bit.DFLLRDY);
-
     SYSCTRL->DFLLCTRL.reg = SYSCTRL_DFLLCTRL_ENABLE;
     while (!SYSCTRL->PCLKSR.bit.DFLLRDY);
 
-    SYSCTRL->DFLLCTRL.bit.ONDEMAND = 0;
-    while (!SYSCTRL->PCLKSR.bit.DFLLRDY);
-
-    uint32_t coarse = (*(volatile uint32_t *)0x806020UL >> 26) & 0x3FUL;
-    SYSCTRL->DFLLVAL.reg = SYSCTRL_DFLLVAL_COARSE(coarse);
-    while (!SYSCTRL->PCLKSR.bit.DFLLRDY);
-
     SYSCTRL->DFLLMUL.reg = SYSCTRL_DFLLMUL_MUL(1465)
-                         | SYSCTRL_DFLLMUL_FSTEP(10)
-                         | SYSCTRL_DFLLMUL_CSTEP(10);
+                         | SYSCTRL_DFLLMUL_FSTEP(511)
+                         | SYSCTRL_DFLLMUL_CSTEP(31);
+
+    while (!SYSCTRL->PCLKSR.bit.DFLLRDY);
+
+    uint32_t coarse = (*((uint32_t *)FUSES_DFLL48M_COARSE_CAL_ADDR) & FUSES_DFLL48M_COARSE_CAL_Msk) >> FUSES_DFLL48M_COARSE_CAL_Pos;
+    SYSCTRL->DFLLVAL.bit.COARSE = coarse;
     while (!SYSCTRL->PCLKSR.bit.DFLLRDY);
 
     SYSCTRL->DFLLCTRL.reg = SYSCTRL_DFLLCTRL_ENABLE
                           | SYSCTRL_DFLLCTRL_MODE
                           | SYSCTRL_DFLLCTRL_WAITLOCK;
-    while (!SYSCTRL->PCLKSR.bit.DFLLRDY);
 
     while (!SYSCTRL->PCLKSR.bit.DFLLLCKC || !SYSCTRL->PCLKSR.bit.DFLLLCKF);
 

@@ -14,7 +14,7 @@
             "request": "launch",
             "type": "cortex-debug",
             "runToEntryPoint": "main",
-            "gdbPath": "arm-none-eabi-gdb",
+            "gdbPath": "gdb-multiarch",
             "servertype": "openocd"
         },
         {
